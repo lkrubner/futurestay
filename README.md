@@ -11,7 +11,9 @@ Check out the code from Github:
 
     cd futurestay/experiments
 
-We will use the built-in web server. Run this in your terminal:
+PHP does not have as many easy-to-embed web servers as the ecosystem of Java or Javascript offers. In Java or Clojure I can simply embed Jetty, which is a great industrial strength web server. It takes one line of code. With PHP, typically the code is run with Nginx or Apache, both of which take some effort to setup. But PHP does afford us with a simple web server that we can use for the sake of running this app and testing it.
+
+Run this in your terminal:
 
     php -S 127.0.0.1:8000
 
@@ -25,13 +27,11 @@ And then in your browser you can look at these 3 pages:
 
 Of HTTP status codes, you should get a 200, a 200, and a 404.
 
-PHP does not have as many easy-to-embed web servers as the ecosystem of Java or Javascript offers, but this should work for testing and development.
-
-To test the rate limit feature, set a cookie with a time in the future:
+To test the rate limit feature, set a cookie with a time in the future. This is a timestamp many years in the future:
 
     curl --verbose --cookie "recent_request=2651077198" "http://127.0.0.1:8000/core.php?path=user_json"
 
-Or, open two web browsers and hit refresh quickly in both of them.
+Or, open two web browsers and hit refresh quickly in both of them. Sometimes I was able to get this error message in the browser if I hit "refesh" very quickly, but you're at the mercy of what your web browser is doing in the background. This is a stateless rate limit that relies on cookies, as such it would be easy for a user to hack, but anything better would require the maintenance of some state.
 
 To run the high level functional tests, please do this:
 
@@ -48,6 +48,7 @@ Try this in your terminal:
 
     curl --verbose https://randomuser.me/api/
 
+Does `آدرین احمدی` come before `m` or after `m`? I don't think this can be answered meaningfully, unless we engage in some arbitrary path through Unicode.
 
 I see the need to come up with a way to sort by last names of different languages. For instance:
 
