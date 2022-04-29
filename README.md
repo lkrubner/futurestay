@@ -11,19 +11,13 @@ Check out the code from Github:
 
     cd futurestay/experiments
 
-We have two branches to consider:
+You should look at both branches:
 
     git checkout main
 
     git checkout metaprogramming-with-closures
 
-The `main` branch is literal, the other branch we will experiment with closures.
-
-
-
-PHP does not have as many easy-to-embed web servers as the ecosystem of Java or Javascript offers. In Java or Clojure I can simply embed Jetty, which is a great industrial strength web server. It takes one line of code. With PHP, typically the code is run with Nginx or Apache, both of which take some effort to setup. But PHP does afford us with a simple web server that we can use for the sake of running this app and testing it.
-
-Run this in your terminal:
+We will use the built-in web server. Run this in your terminal:
 
     php -S 127.0.0.1:8000
 
@@ -33,35 +27,17 @@ And then in your browser you can look at these 3 pages:
 
     http://127.0.0.1:8000/core.php?path=user_json
 
-    http://127.0.0.1:8000/core.php?path=user_json&quantity=110
-
-This allows a specify a schema. For the sake of readability, we keep the quantity to one.  We include one error, so we can see the error message:
-
-    http://127.0.0.1:8000/core.php?path=user_json&schema[]=namefirst&schema[]=namelast&schema[]=locationcoordinateslatitude&schema[]=locationcoordinateslongitude&schema[]=phone&schema[]=picture&quantity=1
-
-Here we increase the quantity to 33:
-
-    http://127.0.0.1:8000/core.php?path=user_json&schema[]=namefirst&schema[]=namelast&schema[]=locationcoordinateslatitude&schema[]=locationcoordinateslongitude&schema[]=phone&schema[]=picture&quantity=33
-
-A quantity above 100 is reset to 100:
-
-    http://127.0.0.1:8000/core.php?path=user_json&schema[]=namefirst&schema[]=namelast&schema[]=locationcoordinateslatitude&schema[]=locationcoordinateslongitude&schema[]=phone&schema[]=picture&quantity=3000
-
-The parameters work the same with XML (quantity 3):
-
-    http://127.0.0.1:8000/core.php?path=user_xml&schema[]=namefirst&schema[]=namelast&schema[]=locationcoordinateslatitude&schema[]=locationcoordinateslongitude&schema[]=phone&schema[]=picture&quantity=3
-
-This one should generate a 404 error:
-
     http://127.0.0.1:8000/core.php
 
 Of HTTP status codes, you should get a 200, a 200, and a 404.
 
-To test the rate limit feature, set a cookie with a time in the future. This is a timestamp many years in the future:
+PHP does not have as many easy-to-embed web servers as the ecosystem of Java or Javascript offers, but this should work for testing and development.
+
+To test the rate limit feature, set a cookie with a time in the future:
 
     curl --verbose --cookie "recent_request=2651077198" "http://127.0.0.1:8000/core.php?path=user_json"
 
-Or, open two web browsers and hit refresh quickly in both of them. Sometimes I was able to get this error message in the browser if I hit "refesh" very quickly, but you're at the mercy of what your web browser is doing in the background. This is a stateless rate limit that relies on cookies, as such it would be easy for a user to hack, but anything better would require the maintenance of some state.
+Or, open two web browsers and hit refresh quickly in both of them.
 
 To run the high level functional tests, please do this:
 
@@ -78,7 +54,6 @@ Try this in your terminal:
 
     curl --verbose https://randomuser.me/api/
 
-Does `آدرین احمدی` come before `m` or after `m`? I don't think this can be answered meaningfully, unless we engage in some arbitrary path through Unicode.
 
 I see the need to come up with a way to sort by last names of different languages. For instance:
 
