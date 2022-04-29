@@ -24,59 +24,50 @@ function fetch() {
     return $user;
 }
 
+function flatten($user_array, $flat=[], $outer_key='') {
+    foreach(array_keys($user_array) as $array_key) {
+        $keyname = $outer_key . $array_key;
+        if (is_array($user_array[$array_key])) {
+            $flat = flatten($user_array[$array_key], $flat, $keyname);
+        } else {
+            $flat[$keyname] = $user_array[$array_key];
+        }
+    }
+
+    return $flat;
+}
 
 function process($user) {
-    $user_array = json_decode($user, true);
-    return $user_array;
+    $user_array_raw = json_decode($user, true);
+    $user_array = $user_array_raw['results'][0];
+    $flat = flatten($user_array);
+    return $flat;
 }
 
-function full_name($user_array) {
-    $full_name = '';
-    $full_name .= $user_array['results'][0]['name']['title'];
-    $full_name .= ' ';
-    $full_name .= $user_array['results'][0]['name']['first'];
-    $full_name .= ' ';
-    $full_name .= $user_array['results'][0]['name']['last'];
-    return $full_name;
-}
-
-function phone($user_array) {
-    $phone = $user_array['results'][0]['phone'];
-    return $phone;
-}
-
-function email($user_array) {
-    $email = $user_array['results'][0]['email'];
-    return $email;
-}
-
-function country($user_array) {
-    $country = $user_array['results'][0]['location']['country'];
-    return $country;
+function supported_api($user_array) {
+    $message = '';
+    foreach($user_array as $key => $value) {
+        $message .= "$key, ";
+    }
+    $message = substr($message, 0, -2);
+    return $message;
 }
 
 function generate($user_array) {
+
     $filtered = [];
-    $filtered['full_name'] = full_name($user_array);
-    $filtered['phone'] = phone($user_array);
-    $filtered['email'] = email($user_array);
-    $filtered['country'] = country($user_array);
-    return $filtered;
-}
+    $schema = $_REQUEST['schema'];
+    $supported = supported_api($user_array);
 
-/*
-  See the README for an explanation of this function
- */
-function last_name_to_unicode_sum($last_name) {
-
-    $sum = 0;
-    $chars = str_split($last_name);
-
-    foreach ($chars as $char) {
-        $sum = $sum + ord($char);
+    foreach ($schema as $value) {
+        if (array_key_exists($value, $user_array)) {
+            $filtered[] = $user_array[$value];
+        } else {
+            $filtered[] = "You requested '$value' but that is not part of our schema. You may request these fields: $supported";
+        }
     }
 
-    return $sum;
+    return $filtered;
 }
 
 function array2xml($array, $node, &$dom) {
@@ -108,31 +99,27 @@ function create_xml($combined) {
     return $dom;
 }
 
-
 function call_api() {
 
-    $quantity = $_REQUEST['quantity'];
+    $quantity = (int) $_REQUEST['quantity'];
     // for security, we test this input, and override if it
     // is not an integer, or if it wasn't set.
     if (!is_int($quantity)) {
         $quantity = 10;
     } else {
+        if ($quantity == 0) $quantity = 10;
         if ($quantity > 100) $quantity = 100;
     }
 
-
-    $combined = [];
-
     // Since I got some 503 or timeouts on the API, we will include 10 retries;
     $r = 0;
+    $combined = [];
 
     for($i=0; $i < $quantity && $r < 10; $i++) {
         $user = fetch();
         if ($user) {
             $user_array = process($user);
-            $generated = generate($user_array);
-            $last_name_sum = last_name_to_unicode_sum($user_array['results'][0]['name']['last']);
-            $combined[$last_name_sum] = $generated;
+            $combined[] = generate($user_array);
         } else {
             // I got some 503 or timeout errors on the Random User API:
             //
@@ -144,10 +131,10 @@ function call_api() {
             // but we don't want to retry an infinite number of times.
             $i--;
             $r++;
+            echo "timeout error so we will re-try Random User \n\n";
         }
     }
 
-    rsort($combined);
     return $combined;
 }
 
