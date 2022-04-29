@@ -11,6 +11,16 @@ Check out the code from Github:
 
     cd futurestay/experiments
 
+We have two branches to consider:
+
+    git checkout main
+
+    git checkout metaprogramming-with-closures
+
+The `main` branch is literal, the other branch we will experiment with closures.
+
+
+
 PHP does not have as many easy-to-embed web servers as the ecosystem of Java or Javascript offers. In Java or Clojure I can simply embed Jetty, which is a great industrial strength web server. It takes one line of code. With PHP, typically the code is run with Nginx or Apache, both of which take some effort to setup. But PHP does afford us with a simple web server that we can use for the sake of running this app and testing it.
 
 Run this in your terminal:
@@ -22,6 +32,26 @@ And then in your browser you can look at these 3 pages:
     http://127.0.0.1:8000/core.php?path=user_xml
 
     http://127.0.0.1:8000/core.php?path=user_json
+
+    http://127.0.0.1:8000/core.php?path=user_json&quantity=110
+
+This allows a specify a schema. For the sake of readability, we keep the quantity to one.  We include one error, so we can see the error message:
+
+    http://127.0.0.1:8000/core.php?path=user_json&schema[]=namefirst&schema[]=namelast&schema[]=locationcoordinateslatitude&schema[]=locationcoordinateslongitude&schema[]=phone&schema[]=picture&quantity=1
+
+Here we increase the quantity to 33:
+
+    http://127.0.0.1:8000/core.php?path=user_json&schema[]=namefirst&schema[]=namelast&schema[]=locationcoordinateslatitude&schema[]=locationcoordinateslongitude&schema[]=phone&schema[]=picture&quantity=33
+
+A quantity above 100 is reset to 100:
+
+    http://127.0.0.1:8000/core.php?path=user_json&schema[]=namefirst&schema[]=namelast&schema[]=locationcoordinateslatitude&schema[]=locationcoordinateslongitude&schema[]=phone&schema[]=picture&quantity=3000
+
+The parameters work the same with XML (quantity 3):
+
+    http://127.0.0.1:8000/core.php?path=user_xml&schema[]=namefirst&schema[]=namelast&schema[]=locationcoordinateslatitude&schema[]=locationcoordinateslongitude&schema[]=phone&schema[]=picture&quantity=3
+
+This one should generate a 404 error:
 
     http://127.0.0.1:8000/core.php
 
