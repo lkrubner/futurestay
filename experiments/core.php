@@ -57,6 +57,7 @@ function generate($user_array) {
 
     $filtered = [];
     $schema = $_REQUEST['schema'];
+    if (!$schema) $schema = ['namefirst', 'namelast', 'locationstreetnumber', 'locationstreetname', 'locationcity'];
     $supported = supported_api($user_array);
 
     foreach ($schema as $value) {
@@ -155,11 +156,12 @@ function respond($route='xml') {
     if ($route == 'xml') {
         $func  = function() use ($combined) {
             $dom = create_xml($combined);
-            return create_xml($combined);
+            return $dom->saveXML();
         };
     } else {
-        return '{ "users" : ' . json_encode($combined) . ' }';
-
+        $func  = function() use ($combined) {
+            return '{ "users" : ' . json_encode($combined) . ' }';
+        };
     }
 
     return $func;
@@ -224,11 +226,11 @@ function routes() {
     if ($route == 'xml') {
         header("HTTP/1.1 200 OK");
         header('Content-Type: application/xml');
-        echo respond($route);
+        echo respond($route)();
     } elseif ($route == 'json') {
         header("HTTP/1.1 200 OK");
         header('Content-Type: application/json');
-        respond($route);
+        echo respond($route)();
     } else {
         header("HTTP/1.1 404 Not Found");
         echo "This is not a known path.";
