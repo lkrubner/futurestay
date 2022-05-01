@@ -139,21 +139,32 @@ function call_api() {
 }
 
 /*
-  The XML is validated by the browser (whereas the json I validated here: https://jsonlint.com)
+  In the 'main' branch we hardcoded the functions `user_xml`
+  and `user_json` but here we use a closure to create a bit
+  of polymorphism.
+
+  A more interesting use would be if we possibly queried
+  multiple APIs, and the function was shaped by the existence
+  of certain keys in $combined, which would tell us which
+  API had been called. That would give us a much more
+  flexible system.
  */
-function user_xml() {
+function respond($route='xml') {
     $combined = call_api();
-    $dom = create_xml($combined);
-    echo $dom->saveXML();
+
+    if ($route == 'xml') {
+        $func  = function() use ($combined) {
+            $dom = create_xml($combined);
+            return create_xml($combined);
+        };
+    } else {
+        return '{ "users" : ' . json_encode($combined) . ' }';
+
+    }
+
+    return $func;
 }
 
-/*
-  I validated the output here: https://jsonlint.com
- */
-function user_json() {
-    $combined = call_api();
-    echo '{ "users" : ' . json_encode($combined) . ' }';
-}
 
 /*
   Here we establish a primitive rate limit on our API.
@@ -210,18 +221,17 @@ function routes() {
     // if we simply called $route we would have a very flexible system,
     // but it would be insecure, so we whitelist for security.
     // Here we have 2 routes and then a default route.
-    if ($route == 'user_xml') {
+    if ($route == 'xml') {
         header("HTTP/1.1 200 OK");
         header('Content-Type: application/xml');
-        user_xml();
-    } elseif ($route == 'user_json') {
+        echo respond($route);
+    } elseif ($route == 'json') {
         header("HTTP/1.1 200 OK");
         header('Content-Type: application/json');
-        user_json();
+        respond($route);
     } else {
         header("HTTP/1.1 404 Not Found");
         echo "This is not a known path.";
-
     }
 
 
